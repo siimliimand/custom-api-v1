@@ -23,6 +23,7 @@
     "sort-packages": true
   },
   "scripts": {
-    "pre-install-cmd": "App\\Cmd\\Scripts::preInstall"
+    "pre-install-cmd": "App\\Cmd\\Scripts::preInstall",
+    "redis:clear:cache": "App\\Cache\\CacheAdapter::clear"
   }
 }

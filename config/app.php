@@ -13,6 +13,12 @@ return [
         'charset' => env('DB_CHARSET','utf8mb4')
     ],
 
+    // redis
+    'redis' => [
+        'host' => env('REDIS_HOST', '127.0.0.1'),
+        'port' => env('REDIS_PORT', '6379')
+    ],
+
     // Google login
     'google' => [
         'app_name' => env('GOOGLE_APP_NAME', ''),

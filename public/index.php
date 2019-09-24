@@ -13,7 +13,7 @@ define('SRC_PATH', ROOT_PATH . 'src/');
 
 require_once ROOT_PATH . 'include/global-functions.php';
 
-$dotenv = new Rfussien\Dotenv\Loader(__DIR__);
+$dotenv = new Rfussien\Dotenv\Loader(ROOT_PATH);
 $dotenv->load();
 
 $configurationLoader = new ConfigurationLoader();

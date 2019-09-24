@@ -2,6 +2,7 @@
 
 namespace App\Cache;
 
+use App\Configuration\Configuration;
 use Closure;
 use TinyRedisClient;
 
@@ -38,7 +39,9 @@ class CacheAdapter
     public static function getClient(): TinyRedisClient
     {
         if (static::$client === null) {
-            static::$client = new TinyRedisClient('127.0.0.1:6379');
+            $host = Configuration::get('app.redis.host');
+            $port = Configuration::get('app.redis.port');
+            static::$client = new TinyRedisClient($host . ':' . $port);
         }
 
         return static::$client;
@@ -73,22 +76,6 @@ class CacheAdapter
     /**
      * @param string $key
      * @param Closure $closure
-     * @return string|null
-     */
-    public static function getOrCallClosure(string $key, Closure $closure): ?string
-    {
-        $value = static::get($key);
-        if($value === null) {
-            $value = $closure();
-            static::set($key, $value);
-        }
-
-        return $value;
-    }
-
-    /**
-     * @param string $key
-     * @param Closure $closure
      * @return array|null
      */
     public static function getArrayOrCallClosure(string $key, Closure $closure): ?array
@@ -100,5 +87,24 @@ class CacheAdapter
         }
 
         return $array;
+    }
+
+    /**
+     * Clear all cache
+     */
+    public static function deleteAllKeys(): void
+    {
+        $client = static::getClient();
+        $client->flushAll();
+    }
+
+    /**
+     * @param string $key
+     */
+    public static function deleteKey(string $key): void
+    {
+        $cacheKey = md5($key);
+        $client = static::getClient();
+        $client->del($cacheKey);
     }
 }
