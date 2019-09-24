@@ -26,6 +26,10 @@ class ControllerFactory
             );
         }
 
+        if ($request->getMethod() === Request::METHOD_OPTIONS) {
+            return [];
+        }
+
         if ($method !== $request->getMethod()) {
             throw new InvalidRouteException(
                 translate('translation.messages.error.invalid_method', [

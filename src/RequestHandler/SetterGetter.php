@@ -41,6 +41,12 @@ class SetterGetter
                 $fn = $this->type;
                 return $fn()[$key] ?? null;
             }
+            if ($this->type === static::TYPE_POST) {
+                $contents = json_decode(file_get_contents('php://input'), true);
+                if (is_array($contents) && array_key_exists($key, $contents)) {
+                    return $contents[$key];
+                }
+            }
             return $GLOBALS[$this->type][$key] ?? $default;
         }
 
@@ -61,6 +67,14 @@ class SetterGetter
             $data = $fn();
         } else {
             $data = $GLOBALS[$this->type];
+        }
+        if ($this->type === static::TYPE_POST) {
+            $contents = json_decode(file_get_contents('php://input'), true);
+            if (is_array($contents)) {
+                foreach ($contents as $key => $value) {
+                    $data[$key] = $value;
+                }
+            }
         }
 
         return array_replace($data, $this->data);
