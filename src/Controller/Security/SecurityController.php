@@ -5,6 +5,9 @@ namespace App\Controller\Security;
 use App\Configuration\Configuration;
 use App\Controller\AbstractController;
 use App\Exception\InvalidGoogleIdTokenException;
+use App\Repository\SocialAccountsRepository;
+use App\Repository\StatusRepository;
+use App\Repository\UserRepository;
 use Google_Client;
 use App\RequestHandler\Request;
 
@@ -21,7 +24,6 @@ class SecurityController extends AbstractController
     private const EMAIL = 'email';
     private const PICTURE = 'picture';
     private const AVATAR = 'avatar';
-    private const USER = 'user';
 
     /**
      * @param Request $request
@@ -43,14 +45,30 @@ class SecurityController extends AbstractController
 
         $ticket = $client->verifyIdToken($idToken);
         if ($ticket && is_array($ticket)) {
+            $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
+            if ($user === null) {
+                if (UserRepository::createNewUser(
+                    $ticket[static::NAME],
+                    $ticket[static::EMAIL],
+                    UserRepository::generateApiToken($ticket[static::SUB]),
+                    StatusRepository::STATUS_ACTIVE,
+                    SocialAccountsRepository::PROVIDER_GOOGLE,
+                    $ticket[static::SUB]
+                )) {
+                    $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
+                    if($user === null) {
+                        return [];
+                    }
+                } else {
+                    return [];
+                }
+            }
+
             return [
-                static::ID => $ticket[static::SUB],
-                static::NAME => $ticket[static::NAME],
-                static::EMAIL => $ticket[static::EMAIL],
                 static::AVATAR => $ticket[static::PICTURE],
-                static::USER => [
-                    'name' => 'Test User' // TODO: Add user data
-                ]
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'api_token' => $user['api_token']
             ];
         }
 

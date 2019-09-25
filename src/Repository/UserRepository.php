@@ -20,12 +20,12 @@ class UserRepository
 
         $sql = "
         SELECT u.*
-          FROM $usersTableName as u
-          JOIN $socialAccountsTableName as sa ON sa.user_id = u.id
-          JOIN $statusTableName as us ON u.status_id = us.id
-         WHERE sa.provider_user_id = :provider_user_id
-           AND sa.provider = :provider 
-           AND us.code = :status
+          FROM `$usersTableName` AS u
+          JOIN `$socialAccountsTableName` AS sa ON sa.`user_id` = u.id
+          JOIN `$statusTableName` AS us ON u.`status_id` = us.id
+         WHERE sa.`provider_user_id` = :provider_user_id
+           AND sa.`provider` = :provider 
+           AND us.`code` <> :status
         ";
         $properties = [
             'provider_user_id' => $googleId,
@@ -39,5 +39,61 @@ class UserRepository
         }
 
         return null;
+    }
+
+    /**
+     * @param string $name
+     * @param string $email
+     * @param string $apiToken
+     * @param string $statusCode
+     * @param string $socialAccountProvider
+     * @param string $socialAccountProviderUserId
+     * @return bool
+     */
+    public static function createNewUser(
+        string $name,
+        string $email,
+        string $apiToken,
+        string $statusCode,
+        string $socialAccountProvider,
+        string $socialAccountProviderUserId
+    ): bool {
+        $tableName = static::TABLE_NAME;
+        $sql = "
+            INSERT INTO $tableName
+            (`name`, `email`, `api_token`, `status_id`, `created_at`, `updated_at`)
+            VALUES
+            (:name, :email, :api_token, :status_id, NOW(), NOW())
+        ";
+        $params = [
+            'name' => $name,
+            'email' => $email,
+            'api_token' => $apiToken,
+            'status_id' => StatusRepository::getStatusIdByCode($statusCode)
+        ];
+        $stmt = DB::execute($sql, $params);
+
+        if ($stmt !== null) {
+            $userId = DB::getLastInsertId();
+
+            return SocialAccountsRepository::createNewSocialAccount(
+                $userId,
+                $socialAccountProvider,
+                $socialAccountProviderUserId
+            );
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    public static function generateApiToken(string $key): string
+    {
+        $secret = env('APP_SECRET', '1234');
+
+        return md5($secret . $key);
     }
 }

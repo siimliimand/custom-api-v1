@@ -89,4 +89,9 @@ class DB
 
         return static::$pdo;
     }
+
+    public static function getLastInsertId(): string
+    {
+        return static::getPdo() ? static::getPdo()->lastInsertId() : null;
+    }
 }
