@@ -28,8 +28,11 @@ if (isset($argc, $argv[1])) {
             App\Cmd\DB::migrate();
             break;
         case 'redis:clear:cache':
+        case 'redis:cache:clear':
             App\Cache\CacheAdapter::deleteAllKeys();
             break;
+        default:
+            echo $argv[1] . " not found!\n";
     }
 }
 else {
