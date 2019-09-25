@@ -2,8 +2,8 @@
 
 use App\Configuration\Configuration;
 use App\Configuration\ConfigurationLoader;
-use App\RequestHandler\Request;
-use App\RequestHandler\RequestHandler;
+
+set_time_limit(0);
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
@@ -22,12 +22,16 @@ $configurationLoader->load();
 $_SERVER['APP_ENV'] = Configuration::get(Configuration::APP_ENV);
 $_SERVER['APP_DEBUG'] = Configuration::get(Configuration::APP_DEBUG);
 
-if ($_SERVER['APP_DEBUG']) {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
+if (isset($argc, $argv[1])) {
+    switch($argv[1]) {
+        case 'migrate':
+            App\Cmd\DB::migrate();
+            break;
+        case 'redis:clear:cache':
+            App\Cache\CacheAdapter::deleteAllKeys();
+            break;
+    }
 }
-
-$request = new Request();
-$requestHandler = new RequestHandler();
-$requestHandler->handle($request);
+else {
+    echo "argc and argv disabled\n";
+}

@@ -24,6 +24,7 @@
   },
   "scripts": {
     "pre-install-cmd": "App\\Cmd\\Scripts::preInstall",
-    "redis:clear:cache": "App\\Cache\\CacheAdapter::clear"
+    "redis:clear:cache": "php bin/console redis:clear:cache",
+    "migrate": "php bin/console migrate"
   }
 }
