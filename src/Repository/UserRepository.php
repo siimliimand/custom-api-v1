@@ -14,6 +14,21 @@ class UserRepository
      */
     public static function getUserByGoogleId(string $googleId): ?array
     {
+        $user = static::_getUserByGoogleId($googleId);
+        if($user === null || ($apiToken = static::updateApiToken($user['id'])) === false) {
+            return null;
+        }
+        $user['api_token'] = $apiToken;
+
+        return $user;
+    }
+
+    /**
+     * @param string $googleId
+     * @return array|null
+     */
+    protected static function _getUserByGoogleId(string $googleId): ?array
+    {
         $usersTableName = static::TABLE_NAME;
         $socialAccountsTableName = SocialAccountsRepository::TABLE_NAME;
         $statusTableName = StatusRepository::TABLE_NAME;
@@ -39,6 +54,27 @@ class UserRepository
         }
 
         return null;
+    }
+
+    /**
+     * @param int $userId
+     * @return string|null
+     */
+    public static function updateApiToken(int $userId): ?string
+    {
+        $tableName = static::TABLE_NAME;
+        $sql = "
+        UPDATE `$tableName` 
+           SET `api_token` = :api_token
+         WHERE `id` = :id
+        ";
+        $apiToken = static::generateApiToken($userId);
+        $params = [
+            'api_token' => $apiToken,
+            'id' => $userId
+        ];
+
+        return DB::execute($sql, $params) !== null ? $apiToken : null;
     }
 
     /**
@@ -94,6 +130,6 @@ class UserRepository
     {
         $secret = env('APP_SECRET', '1234');
 
-        return md5($secret . $key);
+        return md5($secret . $key . microtime());
     }
 }
