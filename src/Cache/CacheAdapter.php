@@ -93,7 +93,9 @@ class CacheAdapter
         $array = static::getArray($key);
         if ($array === null) {
             $array = $closure();
-            static::setArray($key, $array, $ex);
+            if (empty($array) === false) {
+                static::setArray($key, $array, $ex);
+            }
         }
 
         return $array;

@@ -1,6 +1,9 @@
 <?php
 
+use App\Cache\CacheAdapter;
 use App\Configuration\Configuration;
+use App\Repository\LanguageRepository;
+use App\Repository\TranslationRepository;
 
 function dump(...$data): void
 {
@@ -28,13 +31,34 @@ function __dump(...$data): void
     echo '</pre>';
 }
 
-function translate(string $key, array $params = []): string
+function translate(string $key, string $languageCode = 'en', array $params = []): string
 {
+    $defaultLanguageId = 1;
     $translationKey = 'translation.' . $key;
+    $cacheKey = $translationKey . '-' . $languageCode;
+    $translation = CacheAdapter::get($cacheKey);
+    if ($translation !== null) {
+        return vsprintf($translation, $params);
+    }
+
+    $languageId = LanguageRepository::getLanguageId($languageCode);
+    if ($languageId === null) {
+        $languageId = $defaultLanguageId;
+    }
+
+    $translation = TranslationRepository::get($key, $languageId);
+    if ($translation !== null) {
+        CacheAdapter::set($cacheKey, $translation, 0);
+        return vsprintf($translation, $params);
+    }
+
     $default = Configuration::get($translationKey);
     if ($default !== null) {
+        if ($languageId === $defaultLanguageId) {
+            TranslationRepository::set($key, $languageId, $default);
+            CacheAdapter::set($cacheKey, $default, 0);
+        }
         $default = vsprintf($default, $params);
-        //TODO: Call from db
     }
     return $default . ' | TODO: Translate it';
 }

@@ -29,7 +29,8 @@ class StatusRepository
             }
 
             return [];
-        });
+        }, 0);
+
         return $data['id'] ?? null;
     }
 }
