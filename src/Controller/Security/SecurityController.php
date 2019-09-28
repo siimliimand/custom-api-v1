@@ -2,7 +2,6 @@
 
 namespace App\Controller\Security;
 
-use App\Configuration\Configuration;
 use App\Controller\AbstractController;
 use App\Exception\InvalidGoogleIdTokenException;
 use App\Repository\SocialAccountsRepository;
@@ -35,41 +34,36 @@ class SecurityController extends AbstractController
         $idToken = $request->request->get('id_token', null);
         if ($idToken === null) {
             throw new InvalidGoogleIdTokenException(
-                translate('translation.messages.error.invalid_google_id_token')
+                translate('messages.error.invalid_google_id_token')
             );
         }
 
         $client = new Google_Client();
-        $client->setApplicationName(Configuration::get('app.google.app_name'));
-        $client->setClientId(Configuration::get('app.google.client_id'));
+        $client->setApplicationName(appGet('google.app_name'));
+        $client->setClientId(appGet('google.client_id'));
 
         $ticket = $client->verifyIdToken($idToken);
         if ($ticket && is_array($ticket)) {
             $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
-            if ($user === null) {
-                if (UserRepository::createNewUser(
+            if ($user === null && UserRepository::createNewUser(
                     $ticket[static::NAME],
                     $ticket[static::EMAIL],
                     UserRepository::generateApiToken($ticket[static::SUB]),
                     StatusRepository::STATUS_ACTIVE,
                     SocialAccountsRepository::PROVIDER_GOOGLE,
                     $ticket[static::SUB]
-                )) {
-                    $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
-                    if($user === null) {
-                        return [];
-                    }
-                } else {
-                    return [];
-                }
+            )) {
+                $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
             }
 
-            return [
-                static::AVATAR => $ticket[static::PICTURE],
-                'name' => $user['name'],
-                'email' => $user['email'],
-                'api_token' => $user['api_token']
-            ];
+            if ($user !== null) {
+                return [
+                    static::AVATAR => $ticket[static::PICTURE],
+                    'name' => $user['name'],
+                    'email' => $user['email'],
+                    'api_token' => $user['api_token']
+                ];
+            }
         }
 
         throw new InvalidGoogleIdTokenException(

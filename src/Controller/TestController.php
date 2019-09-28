@@ -77,7 +77,7 @@ class TestController
         $token = $request->request->get(RoutesConfigurationInterface::PARAMETER_TOKEN, null);
         if ($token === null || $token !== '6a2f41a3-c54c-fce8-32d2-0324e1c32e22') {
             throw new UnauthorizedException(
-                translate('translation.messages.error.invalid_route')
+                translate('messages.error.invalid_route')
             );
         }
 

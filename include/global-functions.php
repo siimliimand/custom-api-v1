@@ -30,10 +30,17 @@ function __dump(...$data): void
 
 function translate(string $key, array $params = []): string
 {
-    $default = Configuration::get($key);
+    $translationKey = 'translation.' . $key;
+    $default = Configuration::get($translationKey);
     if ($default !== null) {
         $default = vsprintf($default, $params);
         //TODO: Call from db
     }
     return $default . ' | TODO: Translate it';
+}
+
+function appGet(string $key): string
+{
+    $appKey = 'app.' . $key;
+    return Configuration::get($appKey);
 }

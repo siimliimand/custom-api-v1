@@ -22,7 +22,7 @@ class ControllerFactory
 
         if ($controllerClass === null || $action === null || $method === null) {
             throw new InvalidRouteException(
-                translate('translation.messages.error.invalid_route')
+                translate('messages.error.invalid_route')
             );
         }
 
@@ -32,7 +32,7 @@ class ControllerFactory
 
         if ($method !== $request->getMethod()) {
             throw new InvalidRouteException(
-                translate('translation.messages.error.invalid_method', [
+                translate('messages.error.invalid_method', [
                     'method' => $method
                 ])
             );
