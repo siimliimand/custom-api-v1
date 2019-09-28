@@ -25,12 +25,20 @@ class CacheAdapter
     /**
      * @param string $key
      * @param string $value
+     * @param int|null $ex
      */
-    public static function set(string $key, string $value): void
+    public static function set(string $key, string $value, int $ex = null): void
     {
+        if ($ex === null) {
+            $ex = env('REDIS_EX_SECONDS', 3600);
+        }
         $cacheKey = md5($key);
         $client = static::getClient();
-        $client->set($cacheKey, $value);
+        if ($ex === 0) {
+            $client->set($cacheKey, $value);
+        } else {
+            $client->setex($cacheKey, $ex, $value);
+        }
     }
 
     /**
@@ -66,24 +74,26 @@ class CacheAdapter
     /**
      * @param string $key
      * @param array $array
+     * @param int|null $ex
      */
-    public static function setArray(string $key, array $array): void
+    public static function setArray(string $key, array $array, int $ex = null): void
     {
         $value = json_encode($array);
-        static::set($key, $value);
+        static::set($key, $value, $ex);
     }
 
     /**
      * @param string $key
      * @param Closure $closure
+     * @param int|null $ex
      * @return array|null
      */
-    public static function getArrayOrCallClosure(string $key, Closure $closure): ?array
+    public static function getArrayOrCallClosure(string $key, Closure $closure, int $ex = null): ?array
     {
         $array = static::getArray($key);
         if ($array === null) {
             $array = $closure();
-            static::setArray($key, $array);
+            static::setArray($key, $array, $ex);
         }
 
         return $array;
