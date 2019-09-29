@@ -4,10 +4,10 @@ namespace App\Controller\Security;
 
 use App\Controller\AbstractController;
 use App\Exception\InvalidGoogleIdTokenException;
+use App\Google\IdTokenVerifier;
 use App\Repository\SocialAccountsRepository;
 use App\Repository\StatusRepository;
 use App\Repository\UserRepository;
-use Google_Client;
 use App\RequestHandler\Request;
 
 class SecurityController extends AbstractController
@@ -32,33 +32,28 @@ class SecurityController extends AbstractController
     public function loginWithGoogle(Request $request): array
     {
         $idToken = $request->request->get('id_token', null);
-        if ($idToken === null) {
+        if (IdTokenVerifier::verify($idToken) === false) {
             throw new InvalidGoogleIdTokenException(
                 translate('messages.error.invalid_google_id_token')
             );
         }
-
-        $client = new Google_Client();
-        $client->setApplicationName(appGet('google.app_name'));
-        $client->setClientId(appGet('google.client_id'));
-
-        $ticket = $client->verifyIdToken($idToken);
-        if ($ticket && is_array($ticket)) {
-            $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
+        $payload = IdTokenVerifier::getPayload();
+        if ($payload) {
+            $user = UserRepository::getUserByGoogleId($payload[static::SUB]);
             if ($user === null && UserRepository::createNewUser(
-                    $ticket[static::NAME],
-                    $ticket[static::EMAIL],
-                    UserRepository::generateApiToken($ticket[static::SUB]),
+                    $payload[static::NAME],
+                    $payload[static::EMAIL],
+                    UserRepository::generateApiToken($payload[static::SUB]),
                     StatusRepository::STATUS_ACTIVE,
                     SocialAccountsRepository::PROVIDER_GOOGLE,
-                    $ticket[static::SUB]
-            )) {
-                $user = UserRepository::getUserByGoogleId($ticket[static::SUB]);
+                    $payload[static::SUB]
+                )) {
+                $user = UserRepository::getUserByGoogleId($payload[static::SUB]);
             }
 
             if ($user !== null) {
                 return [
-                    static::AVATAR => $ticket[static::PICTURE],
+                    static::AVATAR => $payload[static::PICTURE],
                     'name' => $user['name'],
                     'email' => $user['email'],
                     'api_token' => $user['api_token']

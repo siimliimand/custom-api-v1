@@ -5,9 +5,9 @@
     "php": "^7.2",
     "ext-json": "*",
     "ext-pdo": "*",
-    "google/apiclient": "^2.2",
     "ptrofimov/tinyredisclient": "1.1.*",
-    "rfussien/dotenv": "^1.0"
+    "rfussien/dotenv": "^1.0",
+    "ext-openssl": "*"
   },
   "autoload": {
     "psr-4": {
