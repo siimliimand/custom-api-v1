@@ -17,7 +17,6 @@ class SecurityController extends AbstractController
     public const ROUTE_PART_LOGIN_WITH_GOOGLE = 'login-with-google';
     public const ACTION_LOGIN_WITH_GOOGLE = 'loginWithGoogle';
 
-    private const ID ='id';
     private const SUB = 'sub';
     private const NAME = 'name';
     private const EMAIL = 'email';
@@ -32,7 +31,7 @@ class SecurityController extends AbstractController
     public function loginWithGoogle(Request $request): array
     {
         $idToken = $request->request->get('id_token', null);
-        if (IdTokenVerifier::verify($idToken) === false) {
+        if ($idToken === null || IdTokenVerifier::verify($idToken) === false) {
             throw new InvalidGoogleIdTokenException(
                 translate('messages.error.invalid_google_id_token')
             );

@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Google;
-
 
 use App\Exception\InvalidGoogleIdTokenException;
 use DateTime;
@@ -11,6 +9,8 @@ use Exception;
 
 class IdTokenVerifier
 {
+
+    public const OPENID_CONFIGURATION_URL = 'https://accounts.google.com/.well-known/openid-configuration';
 
     protected static $payload;
 
@@ -25,7 +25,9 @@ class IdTokenVerifier
         $decodedJWT = static::decodeJWT($idToken);
 
         try {
-            $ok = self::verifySignature($decodedJWT, static::getKeys()) &&
+            $keys = static::getKeys();
+            $ok = $keys !== null &&
+                static::verifySignature($decodedJWT, $keys) &&
                 static::verifyPayload($decodedJWT['payload'], appGet('google.client_id'));
             if ($ok) {
                 static::$payload = $decodedJWT['payload'];
@@ -75,9 +77,18 @@ class IdTokenVerifier
         ];
     }
 
+    /**
+     * @param array $jwt
+     * @param array $keys
+     * @return bool
+     */
     protected static function verifySignature(array $jwt, array $keys): bool
     {
         $kid = $jwt['header']['kid'] ?? null;
+        if ($kid === null) {
+            return false;
+        }
+
         $key = static::findKey($keys, $kid);
         $pem = static::createPemFromModulusAndExponent($key['n'], $key['e']);
         $pubKeyId = openssl_pkey_get_public($pem);
@@ -98,6 +109,10 @@ class IdTokenVerifier
         $now = new DateTime();
         $now->setTimezone(new DateTimeZone('UTC'));
 
+        if (isset($payload['iss'], $payload['exp'], $payload['aud']) === false) {
+            return false;
+        }
+
         try {
             return in_array($payload['iss'], ['accounts.google.com', 'https://accounts.google.com']) &&
                 $payload['aud'] === $googleClientId &&
@@ -107,15 +122,18 @@ class IdTokenVerifier
         }
     }
 
-    protected static function getKeys(): array
+    protected static function getKeys(): ?array
     {
-        $openIdConfigurationJson = file_get_contents('https://accounts.google.com/.well-known/openid-configuration');
+        $openIdConfigurationJson = file_get_contents(static::OPENID_CONFIGURATION_URL);
         $openIdConfigurationData = json_decode($openIdConfigurationJson, false);
-        $jwksUri = $openIdConfigurationData->jwks_uri;
+        $jwksUri = $openIdConfigurationData->jwks_uri ?? null;
+        if ($jwksUri === null) {
+            return null;
+        }
         $jwksJson = file_get_contents($jwksUri);
         $jwksData = json_decode($jwksJson, true);
 
-        return $jwksData['keys'];
+        return $jwksData['keys'] ?? null;
     }
 
     /**
@@ -175,6 +193,10 @@ class IdTokenVerifier
         return $RSAPublicKey;
     }
 
+    /**
+     * @param $input
+     * @return bool|string
+     */
     protected static function urlsafeB64Decode($input)
     {
         $remainder = strlen($input) % 4;
@@ -185,6 +207,10 @@ class IdTokenVerifier
         return base64_decode(strtr($input, '-_', '+/'));
     }
 
+    /**
+     * @param $length
+     * @return false|string
+     */
     protected static function encodeLength($length)
     {
         if ($length <= 0x7F) {
