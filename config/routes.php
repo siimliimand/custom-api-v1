@@ -11,8 +11,16 @@ return [
             RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
         ],
         RoutesConfigurationInterface::ROUTES => [
-            'test' => require CONFIG_PATH . 'routes/test.php',
-            'security' => require CONFIG_PATH . 'routes/security.php'
+            RoutesConfigurationInterface::REGEX => [
+                RoutesConfigurationInterface::REGEX_DATA => [
+                    RoutesConfigurationInterface::NAME => RoutesConfigurationInterface::PARAMETER_LANGUAGE_CODE,
+                    RoutesConfigurationInterface::VALUE => RoutesConfigurationInterface::REGEX_LANGUAGE_CODE
+                ],
+                RoutesConfigurationInterface::ROUTES => [
+                    'test' => require CONFIG_PATH . 'routes/test.php',
+                    'security' => require CONFIG_PATH . 'routes/security.php'
+                ]
+            ]
         ]
     ]
 ];

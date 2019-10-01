@@ -49,12 +49,18 @@ class RouteManager
             }
 
             if ($key === $routePart) {
-                return static::findRouteDataKeyEqRoutePart($countRouteParts, $value, $routeParts, $closure);
+                $responseData = static::findRouteDataKeyEqRoutePart($countRouteParts, $value, $routeParts);
+                break;
             }
 
             if ($key === RoutesConfigurationInterface::REGEX) {
-                return static::findRouteDataKeyEqRegex($countRouteParts, $value, $routeParts, $routePart, $closure);
+                $responseData = static::findRouteDataKeyEqRegex($countRouteParts, $value, $routeParts, $routePart);
+                break;
             }
+        }
+
+        if ($closure !== null) {
+            $responseData = $closure($responseData);
         }
 
         return $responseData;
@@ -64,14 +70,12 @@ class RouteManager
      * @param int $countRouteParts
      * @param array $value
      * @param array $routeParts
-     * @param Closure|null $closure
      * @return array
      */
     protected static function findRouteDataKeyEqRoutePart(
         int $countRouteParts,
         array $value,
-        array $routeParts,
-        Closure $closure = null
+        array $routeParts
     ): array {
         $responseData = [];
 
@@ -79,9 +83,6 @@ class RouteManager
             $responseData = static::findRouteData($routeParts, $value[RoutesConfigurationInterface::ROUTES]);
         } else if (array_key_exists(RoutesConfigurationInterface::DATA, $value)) {
             $responseData = $value[RoutesConfigurationInterface::DATA];
-            if ($closure !== null) {
-                $responseData = $closure($responseData);
-            }
         }
 
         return $responseData;
@@ -92,15 +93,13 @@ class RouteManager
      * @param array $value
      * @param array $routeParts
      * @param string $routePart
-     * @param Closure|null $closure
      * @return array
      */
     protected static function findRouteDataKeyEqRegex(
         int $countRouteParts,
         array $value,
         array $routeParts,
-        string $routePart,
-        Closure $closure = null
+        string $routePart
     ): array {
         $responseData = [];
         $regex = $value[RoutesConfigurationInterface::REGEX_DATA][RoutesConfigurationInterface::VALUE];
@@ -118,9 +117,6 @@ class RouteManager
             } else if (array_key_exists(RoutesConfigurationInterface::DATA, $value)) {
                 $responseData = $value[RoutesConfigurationInterface::DATA];
                 $responseData[RoutesConfigurationInterface::PARAMETERS][$name] = $routePart;
-                if ($closure !== null) {
-                    $responseData = $closure($responseData);
-                }
             }
         }
 

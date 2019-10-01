@@ -12,6 +12,11 @@ class TestController
 {
     public const ROUTE_NAME = 'test';
 
+    public function test(): array
+    {
+        return [];
+    }
+
     /**
      * @param Request $request
      * @return array
@@ -39,7 +44,7 @@ class TestController
             ];
         } catch(Exception $exception) {
             $data = [];
-            Logger::logError($exception);
+            Logger::logError($exception, $request);
         }
 
         return $data;
@@ -75,7 +80,7 @@ class TestController
     public function secure(Request $request): array
     {
         $token = $request->request->get(RoutesConfigurationInterface::PARAMETER_TOKEN, null);
-        if ($token === null || $token !== '6a2f41a3-c54c-fce8-32d2-0324e1c32e22') {
+        if ($token === null || $token !== 'f89d654ee2a7d78262f055fb7d122199') {
             throw new UnauthorizedException(
                 translate('messages.error.invalid_route')
             );
@@ -84,7 +89,7 @@ class TestController
         return [
             'id' => 1,
             'name' => 'Test Name',
-            'lang' => 'en'
+            'lang' => $request->request->get(RoutesConfigurationInterface::PARAMETER_LANGUAGE_CODE)
         ];
     }
 }

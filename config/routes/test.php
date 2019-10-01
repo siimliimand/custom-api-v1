@@ -10,6 +10,13 @@ return [
         RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
     ],
     RoutesConfigurationInterface::ROUTES => [
+        'test' => [
+            RoutesConfigurationInterface::DATA => [
+                RoutesConfigurationInterface::CONTROLLER => TestController::class,
+                RoutesConfigurationInterface::ACTION => 'test',
+                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
+            ]
+        ],
         RoutesConfigurationInterface::REGEX => [
             RoutesConfigurationInterface::REGEX_DATA => [
                 RoutesConfigurationInterface::NAME => RoutesConfigurationInterface::PARAMETER_ID,
@@ -33,7 +40,7 @@ return [
                         RoutesConfigurationInterface::REGEX => [
                             RoutesConfigurationInterface::REGEX_DATA => [
                                 RoutesConfigurationInterface::NAME => RoutesConfigurationInterface::PARAMETER_TOKEN,
-                                RoutesConfigurationInterface::VALUE => RoutesConfigurationInterface::REGEX_UUID
+                                RoutesConfigurationInterface::VALUE => RoutesConfigurationInterface::REGEX_MD5
                             ],
                             RoutesConfigurationInterface::DATA => [
                                 RoutesConfigurationInterface::CONTROLLER => TestController::class,

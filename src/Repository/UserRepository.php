@@ -8,6 +8,8 @@ class UserRepository
 {
     public const TABLE_NAME = 'users';
 
+    public static $apiTokenUserIds = [];
+
     /**
      * @param string $googleId
      * @return array|null
@@ -21,6 +23,37 @@ class UserRepository
         $user['api_token'] = $apiToken;
 
         return $user;
+    }
+
+    /**
+     * @param string $apiToken
+     * @return int|null
+     */
+    public static function getUserIdByApiToken(string $apiToken): ?int
+    {
+        if (array_key_exists($apiToken, static::$apiTokenUserIds)) {
+            return static::$apiTokenUserIds[$apiToken];
+        }
+
+        $tableName = static::TABLE_NAME;
+        $sql = "
+        SELECT `id`
+          FROM `$tableName`
+         WHERE `api_token` = :api_token
+        ";
+        $params = [
+            'api_token' => $apiToken
+        ];
+        $stmt = DB::execute($sql, $params);
+        if ($stmt) {
+            $data = $stmt->fetch();
+            if (isset($data['id'])) {
+                static::$apiTokenUserIds[$apiToken] = $data['id'];
+                return $data['id'];
+            }
+        }
+
+        return null;
     }
 
     /**

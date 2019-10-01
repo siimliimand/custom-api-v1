@@ -2,81 +2,70 @@
 
 namespace App\Logging;
 
+use App\Repository\ActivityLogRepository;
+use App\RequestHandler\Request;
 use Exception;
-use Monolog\Handler\StreamHandler;
 
 class Logger
 {
 
-    public const TYPE_ERROR = \Monolog\Logger::ERROR;
-    public const TYPE_WARNING = \Monolog\Logger::WARNING;
-
-    protected static $logger;
-
     /**
      * @param Exception $exception
+     * @param Request $request
      * @return bool
      */
-    public static function logError(Exception $exception): bool
+    public static function logError(Exception $exception, Request $request): bool
     {
-        return static::logException($exception, static::TYPE_ERROR);
+        $requestUri = $request->server->get('REQUEST_URI');
+        $data = [
+            'REQUEST_URI' => $requestUri,
+            'IP' => getClientIP()
+        ];
+
+        return true;
     }
 
     /**
-     * @param Exception $exception
-     * @return bool
+     * @param string $controller
+     * @param string $action
+     * @param string $method
+     * @param int|null $userId
+     * @param int|null $languageId
+     * @param array $params
+     * @param array $response
      */
-    public static function logWarning(Exception $exception): bool
-    {
-        return static::logException($exception, static::TYPE_WARNING);
-    }
+    public static function logActivity(
+        string $controller,
+        string $action,
+        string $method,
+        ?int $userId = null,
+        ?int $languageId = null,
+        array $params = [],
+        array $response = []
+    ): void {
+        $logPath = ROOT_PATH . 'logs/';
+        $logFile = $logPath . 'activity.log';
 
-    /**
-     * @param Exception $exception
-     * @param int $type
-     * @return bool
-     */
-    public static function logException(Exception $exception, int $type = self::TYPE_ERROR): bool
-    {
-        $logger = static::getLogger();
-        if ($logger) {
-            switch ($type) {
-                case static::TYPE_ERROR:
-                    $logger->error($exception->getMessage(), $exception->getTrace());
-                    break;
-                case static::TYPE_WARNING:
-                    $logger->warning($exception->getMessage(), $exception->getTrace());
-                    break;
-                default:
-                    return false;
-            }
+        $data = ActivityLogRepository::getInsertParams(
+            $controller,
+            $action,
+            $method,
+            $userId,
+            $languageId,
+            $params,
+            $response
+        );
+        $json = json_encode($data);
 
-            return true;
+        $fp = fopen($logFile, 'a+b');
+
+        if (flock($fp, LOCK_EX)) {
+            fwrite($fp, $json.PHP_EOL);
+            fflush($fp);
+            flock($fp, LOCK_UN);
         }
 
-        return false;
+        fclose($fp);
     }
 
-    /**
-     * TODO: Replace Monolog with Redis cache and db
-     * @return \Monolog\Logger|null
-     */
-    public static function getLogger(): ?\Monolog\Logger
-    {
-        if (static::$logger !== null) {
-            return static::$logger;
-        }
-
-        $log = new \Monolog\Logger('app');
-
-        try {
-            $log->pushHandler(new StreamHandler(ROOT_PATH . 'logs/test.log', \Monolog\Logger::WARNING));
-        } catch (Exception $e) {
-            return null;
-        }
-
-        static::$logger = $log;
-
-        return $log;
-    }
 }

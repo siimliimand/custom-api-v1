@@ -8,6 +8,7 @@ use TinyRedisClient;
 
 class CacheAdapter
 {
+    public const TAG_SEPARATOR = ',';
     protected static $client;
 
     /**
@@ -118,5 +119,17 @@ class CacheAdapter
         $cacheKey = md5($key);
         $client = static::getClient();
         $client->del($cacheKey);
+    }
+
+    /**
+     * @param string $key
+     * @param string $itemKey
+     */
+    public static function addTag(string $key, string $itemKey): void
+    {
+        $cacheKey = md5($key);
+        $itemCacheKey = md5($itemKey);
+        $client = static::getClient();
+        $client->append($cacheKey, $itemCacheKey . static::TAG_SEPARATOR);
     }
 }

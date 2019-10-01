@@ -24,6 +24,7 @@ interface RoutesConfigurationInterface
 
     public const PARAMETER_ID = 'id';
     public const PARAMETER_TOKEN = 'token';
+    public const PARAMETER_LANGUAGE_CODE = 'language';
 
     public const METHOD_GET = ControllerInterface::METHOD_GET;
     public const METHOD_POST = ControllerInterface::METHOD_POST;
@@ -31,5 +32,7 @@ interface RoutesConfigurationInterface
     public const METHOD_DELETE = ControllerInterface::METHOD_DELETE;
     public const METHOD_OPTIONS = ControllerInterface::METHOD_OPTIONS;
 
+    public const REGEX_LANGUAGE_CODE = '/^[a-z]{2}$/i';
     public const REGEX_UUID = '/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/i';
+    public const REGEX_MD5 = '/^[a-f0-9]{32}$/i';
 }

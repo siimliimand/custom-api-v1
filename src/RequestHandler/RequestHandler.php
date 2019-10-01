@@ -2,9 +2,13 @@
 
 namespace App\RequestHandler;
 
+use App\Configuration\RoutesConfigurationInterface;
 use App\Controller\ControllerFactory;
 use App\Exception\InvalidRouteException;
 use App\Exception\UnauthorizedException;
+use App\Logging\Logger;
+use App\Repository\LanguageRepository;
+use App\Repository\UserRepository;
 use App\Route\RouteManager;
 use Exception;
 
@@ -23,15 +27,49 @@ class RequestHandler
             if ($request->getMethod() === Request::METHOD_OPTIONS) {
                 $this->sendOptionsResponse($response, $request);
             } else {
+                $this->logActivity($request, $routeData, $response);
                 $this->sendOkResponse($response, $request);
             }
         } catch (InvalidRouteException $e) {
+            Logger::logError($e, $request);
             $this->sendErrorResponse($e->getMessage(), $request);
         } catch (UnauthorizedException $e) {
+            Logger::logError($e, $request);
             $this->sendUnauthorizedResponse($e->getMessage(), $request);
         } catch (Exception $e) {
+            Logger::logError($e, $request);
             $this->sendErrorResponse($e->getMessage(), $request);
         }
+    }
+
+    /**
+     * @param Request $request
+     * @param array $routeData
+     * @param array $response
+     */
+    protected function logActivity(Request $request, array $routeData, array $response): void
+    {
+        if (env('LOG_ACTIVITY', false) === false) {
+            return ;
+        }
+
+        $parameters = $routeData[RoutesConfigurationInterface::PARAMETERS] ?? [];
+
+        $apiToken = $parameters[RoutesConfigurationInterface::PARAMETER_TOKEN] ?? null;
+        $userId = $apiToken !== null ? UserRepository::getUserIdByApiToken($apiToken) : null;
+
+        $languageCode = $parameters[RoutesConfigurationInterface::PARAMETER_LANGUAGE_CODE] ?? 'en';
+        $languageId = $languageCode !== null ? LanguageRepository::getLanguageId($languageCode) : null;
+
+        Logger::logActivity(
+            $routeData[RoutesConfigurationInterface::CONTROLLER] ?? '',
+            $routeData[RoutesConfigurationInterface::ACTION] ?? '',
+            $routeData[RoutesConfigurationInterface::METHOD] ?? '',
+            $userId,
+            $languageId,
+            $request->request->getData(),
+            $response
+        );
     }
 
     /**
@@ -70,6 +108,8 @@ class RequestHandler
         $response = new Response();
         $response->setStatusCode($statusCode);
         $response->headers->set('Content-Type', static::CONTENT_TYPE_JSON);
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', 'deny');
         $response->headers->set('Access-Control-Allow-Origin', $request->headers->get('Origin'));
         $response->setContent(json_encode($content));
         $response->send();
