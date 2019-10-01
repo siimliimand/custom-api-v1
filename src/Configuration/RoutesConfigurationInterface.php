@@ -17,6 +17,9 @@ interface RoutesConfigurationInterface
     public const VALUE = '_value';
     public const METHOD = '_method';
     public const PARAMETERS = '_parameters';
+    public const ACCESS = '_access';
+    public const ACCESS_PRIVATE = 'private';
+    public const ACCESS_PUBLIC = 'public';
 
     public const ACTION_INDEX = 'index';
     public const ACTION_SHOW = 'show';

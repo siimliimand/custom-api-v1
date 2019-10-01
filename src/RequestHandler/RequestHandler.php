@@ -23,6 +23,8 @@ class RequestHandler
     {
         $routeData = RouteManager::getRouteData($request);
         try {
+            static::checkApiKey($request, $routeData);
+
             $response = ControllerFactory::callControllerByRouteData($routeData, $request);
             if ($request->getMethod() === Request::METHOD_OPTIONS) {
                 $this->sendOptionsResponse($response, $request);
@@ -39,6 +41,24 @@ class RequestHandler
         } catch (Exception $e) {
             Logger::logError($e, $request);
             $this->sendErrorResponse($e->getMessage(), $request);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param array $routeData
+     * @throws UnauthorizedException
+     */
+    protected static function checkApiKey(Request $request, array $routeData): void
+    {
+        $apiToken = $request->headers->get('X-API-KEY', null);
+        if ($routeData[RoutesConfigurationInterface::ACCESS] === RoutesConfigurationInterface::ACCESS_PRIVATE) {
+            $user = $apiToken !== null ? UserRepository::getUserIdByApiToken($apiToken) : null;
+            if ($user === null) {
+                throw new UnauthorizedException(
+                    translate('messages.error.unauthorized')
+                );
+            }
         }
     }
 
@@ -84,13 +104,13 @@ class RequestHandler
         $response->headers->set('Access-Control-Allow-Credentials', 'true');
         $response->headers->set('Access-Control-Max-Age', '86400');
 
-        if (isset($requestHeaders['Access-Control-Request-Headers'])) {
-            $response->headers->set('Access-Control-Allow-Headers', $requestHeaders['Access-Control-Request-Headers']);
+        if (isset($requestHeaders['access-control-request-headers'])) {
+            $response->headers->set('Access-Control-Allow-Headers', $requestHeaders['access-control-request-headers']);
         } else {
             $response->headers->set('Access-Control-Allow-Headers', 'Origin, Content-Type');
         }
-        if (isset($requestHeaders['Access-Control-Request-Method'])) {
-            $response->headers->set('Access-Control-Allow-Methods', $requestHeaders['Access-Control-Request-Method']);
+        if (isset($requestHeaders['access-control-request-method'])) {
+            $response->headers->set('Access-Control-Allow-Methods', $requestHeaders['access-control-request-method']);
         }
 
         $response->setStatusCode(Response::HTTP_OK);
@@ -111,6 +131,7 @@ class RequestHandler
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'deny');
         $response->headers->set('Access-Control-Allow-Origin', $request->headers->get('Origin'));
+        $response->headers->set('x-api-key', $request->headers->get('x-api-key'));
         $response->setContent(json_encode($content));
         $response->send();
     }

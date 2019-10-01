@@ -16,52 +16,6 @@ class UserRepository
      */
     public static function getUserByGoogleId(string $googleId): ?array
     {
-        $user = static::_getUserByGoogleId($googleId);
-        if($user === null || ($apiToken = static::updateApiToken($user['id'])) === false) {
-            return null;
-        }
-        $user['api_token'] = $apiToken;
-
-        return $user;
-    }
-
-    /**
-     * @param string $apiToken
-     * @return int|null
-     */
-    public static function getUserIdByApiToken(string $apiToken): ?int
-    {
-        if (array_key_exists($apiToken, static::$apiTokenUserIds)) {
-            return static::$apiTokenUserIds[$apiToken];
-        }
-
-        $tableName = static::TABLE_NAME;
-        $sql = "
-        SELECT `id`
-          FROM `$tableName`
-         WHERE `api_token` = :api_token
-        ";
-        $params = [
-            'api_token' => $apiToken
-        ];
-        $stmt = DB::execute($sql, $params);
-        if ($stmt) {
-            $data = $stmt->fetch();
-            if (isset($data['id'])) {
-                static::$apiTokenUserIds[$apiToken] = $data['id'];
-                return $data['id'];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param string $googleId
-     * @return array|null
-     */
-    protected static function _getUserByGoogleId(string $googleId): ?array
-    {
         $usersTableName = static::TABLE_NAME;
         $socialAccountsTableName = SocialAccountsRepository::TABLE_NAME;
         $statusTableName = StatusRepository::TABLE_NAME;
@@ -90,10 +44,42 @@ class UserRepository
     }
 
     /**
+     * @param string $apiToken
+     * @return int|null
+     */
+    public static function getUserIdByApiToken(string $apiToken): ?int
+    {
+        if (array_key_exists($apiToken, static::$apiTokenUserIds)) {
+            return static::$apiTokenUserIds[$apiToken];
+        }
+
+        $tableName = static::TABLE_NAME;
+        $sql = "
+        SELECT `id`
+          FROM `$tableName`
+         WHERE `api_token` = :api_token
+        ";
+        $params = [
+            'api_token' => md5($apiToken)
+        ];
+        $stmt = DB::execute($sql, $params);
+        if ($stmt) {
+            $data = $stmt->fetch();
+            if (isset($data['id'])) {
+                static::$apiTokenUserIds[$apiToken] = $data['id'];
+                return $data['id'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param int $userId
+     * @param string $apiToken
      * @return string|null
      */
-    public static function updateApiToken(int $userId): ?string
+    public static function updateApiToken(int $userId, string $apiToken): ?string
     {
         $tableName = static::TABLE_NAME;
         $sql = "
@@ -101,9 +87,8 @@ class UserRepository
            SET `api_token` = :api_token
          WHERE `id` = :id
         ";
-        $apiToken = static::generateApiToken($userId);
         $params = [
-            'api_token' => $apiToken,
+            'api_token' => md5($apiToken),
             'id' => $userId
         ];
 

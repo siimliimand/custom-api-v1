@@ -31,31 +31,40 @@ class SecurityController extends AbstractController
     public function loginWithGoogle(Request $request): array
     {
         $idToken = $request->request->get('id_token', null);
+
+        // Verify Google id_token
         if ($idToken === null || IdTokenVerifier::verify($idToken) === false) {
             throw new InvalidGoogleIdTokenException(
                 translate('messages.error.invalid_google_id_token')
             );
         }
+
         $payload = IdTokenVerifier::getPayload();
         if ($payload) {
+            $apiToken = UserRepository::generateApiToken($payload[static::SUB]);
             $user = UserRepository::getUserByGoogleId($payload[static::SUB]);
+
+            // Create user or update user api token
             if ($user === null && UserRepository::createNewUser(
                     $payload[static::NAME],
                     $payload[static::EMAIL],
-                    UserRepository::generateApiToken($payload[static::SUB]),
+                    $apiToken,
                     StatusRepository::STATUS_ACTIVE,
                     SocialAccountsRepository::PROVIDER_GOOGLE,
                     $payload[static::SUB]
                 )) {
                 $user = UserRepository::getUserByGoogleId($payload[static::SUB]);
+            } else {
+                UserRepository::updateApiToken($user['id'], $apiToken);
             }
 
             if ($user !== null) {
+                $request->headers->set('X-API-KEY', $apiToken);
+
                 return [
                     static::AVATAR => $payload[static::PICTURE],
                     'name' => $user['name'],
-                    'email' => $user['email'],
-                    'api_token' => $user['api_token']
+                    'email' => $user['email']
                 ];
             }
         }

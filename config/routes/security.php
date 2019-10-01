@@ -9,7 +9,8 @@ return [
             RoutesConfigurationInterface::DATA => [
                 RoutesConfigurationInterface::CONTROLLER => SecurityController::class,
                 RoutesConfigurationInterface::ACTION => SecurityController::ACTION_LOGIN_WITH_GOOGLE,
-                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_POST
+                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_POST,
+                RoutesConfigurationInterface::ACCESS => RoutesConfigurationInterface::ACCESS_PUBLIC
             ]
         ]
     ]

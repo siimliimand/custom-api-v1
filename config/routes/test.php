@@ -7,14 +7,16 @@ return [
     RoutesConfigurationInterface::DATA => [
         RoutesConfigurationInterface::CONTROLLER => TestController::class,
         RoutesConfigurationInterface::ACTION => RoutesConfigurationInterface::ACTION_INDEX,
-        RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
+        RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET,
+        RoutesConfigurationInterface::ACCESS => RoutesConfigurationInterface::ACCESS_PUBLIC
     ],
     RoutesConfigurationInterface::ROUTES => [
         'test' => [
             RoutesConfigurationInterface::DATA => [
                 RoutesConfigurationInterface::CONTROLLER => TestController::class,
                 RoutesConfigurationInterface::ACTION => 'test',
-                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
+                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET,
+                RoutesConfigurationInterface::ACCESS => RoutesConfigurationInterface::ACCESS_PRIVATE
             ]
         ],
         RoutesConfigurationInterface::REGEX => [
@@ -25,14 +27,16 @@ return [
             RoutesConfigurationInterface::DATA => [
                 RoutesConfigurationInterface::CONTROLLER => TestController::class,
                 RoutesConfigurationInterface::ACTION => RoutesConfigurationInterface::ACTION_SHOW,
-                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
+                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET,
+                RoutesConfigurationInterface::ACCESS => RoutesConfigurationInterface::ACCESS_PRIVATE
             ],
             RoutesConfigurationInterface::ROUTES => [
                 RoutesConfigurationInterface::ACTION_EDIT => [
                     RoutesConfigurationInterface::DATA => [
                         RoutesConfigurationInterface::CONTROLLER => TestController::class,
                         RoutesConfigurationInterface::ACTION => RoutesConfigurationInterface::ACTION_EDIT,
-                        RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
+                        RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET,
+                        RoutesConfigurationInterface::ACCESS => RoutesConfigurationInterface::ACCESS_PRIVATE
                     ]
                 ],
                 'secure' => [
@@ -45,7 +49,8 @@ return [
                             RoutesConfigurationInterface::DATA => [
                                 RoutesConfigurationInterface::CONTROLLER => TestController::class,
                                 RoutesConfigurationInterface::ACTION => 'secure',
-                                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET
+                                RoutesConfigurationInterface::METHOD => RoutesConfigurationInterface::METHOD_GET,
+                                RoutesConfigurationInterface::ACCESS => RoutesConfigurationInterface::ACCESS_PRIVATE
                             ]
                         ]
                     ]

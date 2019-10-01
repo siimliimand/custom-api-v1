@@ -25,7 +25,9 @@ class SetterGetter
      */
     public function set(string $key, $value): void
     {
-        $this->data[$key] = $value;
+        if ($value !== null) {
+            $this->data[strtolower($key)] = $value;
+        }
     }
 
     /**
@@ -35,11 +37,17 @@ class SetterGetter
      */
     public function get(string $key, $default = null)
     {
+        $key = strtolower($key);
         $value = $this->data[$key] ?? null;
         if ($value === null) {
             if ($this->type === static::TYPE_HEADERS) {
                 $fn = $this->type;
-                return $fn()[$key] ?? null;
+                foreach ($fn() as $k => $v) {
+                    if (strtolower($k) === $key) {
+                        return $v;
+                    }
+                }
+                return null;
             }
             if ($this->type === static::TYPE_POST) {
                 $contents = json_decode(file_get_contents('php://input'), true);
@@ -47,7 +55,12 @@ class SetterGetter
                     return $contents[$key];
                 }
             }
-            return $GLOBALS[$this->type][$key] ?? $default;
+            foreach ($GLOBALS[$this->type] as $k => $v) {
+                if (strtolower($k) === $key) {
+                    return $v;
+                }
+            }
+            return $default;
         }
 
         if ($value === null) {
@@ -77,7 +90,12 @@ class SetterGetter
             }
         }
 
-        return array_replace($data, $this->data);
+        $newData = [];
+        foreach($data as $key => $value) {
+            $newData[strtolower($key)] = $value;
+        }
+
+        return array_replace($newData, $this->data);
     }
 
     /**

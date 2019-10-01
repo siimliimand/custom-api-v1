@@ -80,7 +80,7 @@ class TestController
     public function secure(Request $request): array
     {
         $token = $request->request->get(RoutesConfigurationInterface::PARAMETER_TOKEN, null);
-        if ($token === null || $token !== 'f89d654ee2a7d78262f055fb7d122199') {
+        if ($token === null) {
             throw new UnauthorizedException(
                 translate('messages.error.invalid_route')
             );
