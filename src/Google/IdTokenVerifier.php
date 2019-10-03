@@ -12,7 +12,7 @@ class IdTokenVerifier
 
     public const OPENID_CONFIGURATION_URL = 'https://accounts.google.com/.well-known/openid-configuration';
 
-    protected static $payload;
+    protected static ?array $payload;
 
     /**
      * @param string $idToken

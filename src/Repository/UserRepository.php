@@ -8,7 +8,7 @@ class UserRepository
 {
     public const TABLE_NAME = 'users';
 
-    public static $apiTokenUserIds = [];
+    public static array $apiTokenUserIds = [];
 
     /**
      * @param string $googleId

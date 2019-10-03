@@ -10,7 +10,7 @@ use App\RequestHandler\Request;
 class RouteManager
 {
     /** @var array $routes */
-    protected static $routes = [];
+    protected static array $routes = [];
 
     /**
      * @param Request $request

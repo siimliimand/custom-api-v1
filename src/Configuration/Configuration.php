@@ -8,7 +8,7 @@ class Configuration
     public const APP_DEBUG = 'app.debug';
 
     /** @var array $data */
-    protected static $data = [];
+    protected static array $data = [];
 
     /**
      * @param string $key

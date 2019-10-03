@@ -19,11 +19,11 @@ class Response
 
     public const SERVER_PROTOCOL = '2';
 
-    public $headers;
-    public $content = '';
-    public $statusCode = self::HTTP_OK;
+    public SetterGetter $headers;
+    public string $content = '';
+    public int $statusCode = self::HTTP_OK;
 
-    public static $statusTexts = [
+    public static array $statusTexts = [
         200 => 'OK',
         201 => 'Created',
         202 => 'Accepted',

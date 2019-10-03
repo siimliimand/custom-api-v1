@@ -11,8 +11,8 @@ class SetterGetter
     public const TYPE_FILES = '_FILES';
     public const TYPE_HEADERS = 'getallheaders';
 
-    protected $data = [];
-    protected $type;
+    protected array $data = [];
+    protected string $type;
 
     public function __construct(string $type)
     {

@@ -11,7 +11,7 @@ use PDOStatement;
 class DB
 {
     /** @var PDO $pdo */
-    protected static $pdo;
+    protected static ?PDO $pdo = null;
 
     /**
      * @param $sql

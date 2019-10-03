@@ -9,7 +9,7 @@ use TinyRedisClient;
 class CacheAdapter
 {
     public const TAG_SEPARATOR = ',';
-    protected static $client;
+    protected static ?TinyRedisClient $client = null;
 
     /**
      * @param string $key
