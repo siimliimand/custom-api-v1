@@ -4,6 +4,7 @@ namespace App\Cache;
 
 use App\Configuration\Configuration;
 use Closure;
+use Exception;
 use TinyRedisClient;
 
 class CacheAdapter
@@ -62,8 +63,12 @@ class CacheAdapter
      */
     public static function getArray(string $key): ?array
     {
-        $value = static::get($key);
-        $array = json_decode($value, true);
+        $jsonValue = static::get($key);
+        try {
+            $array = json_decode($jsonValue, true, 512, JSON_THROW_ON_ERROR);
+        } catch (Exception $exception) {
+            $array = null;
+        }
 
         if(is_array($array)) {
             return $array;
@@ -79,7 +84,7 @@ class CacheAdapter
      */
     public static function setArray(string $key, array $array, int $ex = null): void
     {
-        $value = json_encode($array);
+        $value = json_encode($array, JSON_THROW_ON_ERROR, 512);
         static::set($key, $value, $ex);
     }
 

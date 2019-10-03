@@ -55,7 +55,7 @@ class Logger
             $params,
             $response
         );
-        $json = json_encode($data);
+        $json = json_encode($data, JSON_THROW_ON_ERROR, 512);
 
         $fp = fopen($logFile, 'a+b');
 

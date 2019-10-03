@@ -114,7 +114,7 @@ class RequestHandler
         }
 
         $response->setStatusCode(Response::HTTP_OK);
-        $response->setContent(empty($content) ? '' : json_encode($content));
+        $response->setContent(empty($content) ? '' : json_encode($content, JSON_THROW_ON_ERROR, 512));
         $response->send();
     }
 
@@ -132,7 +132,7 @@ class RequestHandler
         $response->headers->set('X-Frame-Options', 'deny');
         $response->headers->set('Access-Control-Allow-Origin', $request->headers->get('Origin'));
         $response->headers->set('x-api-key', $request->headers->get('x-api-key'));
-        $response->setContent(json_encode($content));
+        $response->setContent(json_encode($content, JSON_THROW_ON_ERROR, 512));
         $response->send();
     }
 

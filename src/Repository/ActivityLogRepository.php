@@ -83,7 +83,7 @@ class ActivityLogRepository
             'user_id' => $userId,
             'language_id' => $languageId,
             'params' => $params,
-            'response' => json_encode($response)
+            'response' => json_encode($response, JSON_THROW_ON_ERROR, 512)
         ];
     }
 }

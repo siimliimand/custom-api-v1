@@ -53,9 +53,16 @@ class SetterGetter
         switch ($this->type) {
             case static::TYPE_POST:
                 $this->setArray($_POST);
-                $contents = json_decode(file_get_contents('php://input'), true);
-                if (is_array($contents)) {
-                    $this->setArray($contents);
+                $jsonData = file_get_contents('php://input');
+                if ($jsonData !== '') {
+                    try {
+                        $contents = json_decode($jsonData, true, 512, JSON_THROW_ON_ERROR);
+                    } catch(\Exception $exception) {
+                        $contents = null;
+                    }
+                    if (is_array($contents)) {
+                        $this->setArray($contents);
+                    }
                 }
                 break;
 
